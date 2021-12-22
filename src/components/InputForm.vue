@@ -22,7 +22,9 @@
     <br/>
 
     <div v-if="isPdfOrientationAmbiguous">
-      <ui-alert class="no_top_margin" state="warning" closable>Looks like this document contains both landscape and portrait pages.</ui-alert>
+      <ui-alert class="no_top_margin" state="warning">
+        Looks like this document contains both landscape and portrait pages.
+      </ui-alert>
       <ui-form-field>
         <label class="min_width_m">Select orientation:</label>
         <span>
@@ -47,12 +49,12 @@
                 single-select
             />
             <br/>
-            {{bookletTypeTooltip}}
+            {{ bookletTypeTip }}
           </span>
         </ui-form-field>
 
         <ui-form-field>
-          <label>Rotate even pages 180°:</label>
+          <label>Rotate alternate pages 180°:</label>
           <ui-switch
               v-model="rotate_even_pages"
               input-id="basic-switch-custom"
@@ -72,10 +74,6 @@
     <ui-button raised icon="download_for_offline" @click="submitForm">
       Download
     </ui-button>
-  </div>
-
-  <div>
-    {{this.pdf_orientation_manual}}
   </div>
 </template>
 
@@ -120,7 +118,7 @@ const detectPageOrientation = (page) => {
   const rotated = (page.getRotation().angle / 90) % 2 !== 0;
   const landscape = width > height;
 
-  return (landscape || rotated) && !(landscape && rotated)
+  return (landscape && !rotated) || (!landscape && rotated)
       ? ORIENTATION_LANDSCAPE
       : ORIENTATION_PORTRAIT;
 }
@@ -149,7 +147,6 @@ export default {
       pdf_orientations,
       rotate_even_pages: true,
       ignore_pages: '',
-      pdf_base64: '',
       booklet_orientation: -1,
       pdf_orientation: -1,
       pdf_orientation_manual: -1,
@@ -173,7 +170,7 @@ export default {
     fileName() {
       return this.file_name;
     },
-    bookletTypeTooltip() {
+    bookletTypeTip() {
       if (this.booklet_orientation < 0 || this.pdf_orientation < 0) {
         return "";
       }
