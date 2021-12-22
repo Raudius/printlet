@@ -1,5 +1,5 @@
 <template>
-  <div class="printlet_form">
+  <div class="form">
     <h2>
       1. Load PDF
       <ui-icon
@@ -10,7 +10,7 @@
         info
       </ui-icon>
     </h2>
-    <InputPdf />
+    <InputPdf ref="input_pdf"/>
 
     <h2>2. Settings</h2>
     <InputSettings />
@@ -25,17 +25,36 @@
 <script>
 import InputPdf from "@/components/InputPdf";
 import InputSettings from "@/components/InputSettings";
+import {vTooltip} from "balm-ui";
+import download from "downloadjs";
 
 export default {
   name: 'Form',
-  components: {InputSettings, InputPdf}
+  components: {InputSettings, InputPdf},
+  methods: {
+    async submitForm () {
+      const doc = this.getPdf();
+      if (!doc) {
+        alert('No pdf loaded.');
+      }
+
+      const pdf = await doc.save();
+      download(pdf, 'test.pdf', 'application/pdf');
+    },
+    getPdf () {
+      return this.$refs.input_pdf.pdf_document;
+    }
+  },
+  directives: {
+    'tooltip': vTooltip
+  }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
-.printlet_form {
+.form {
   margin-right: 30%;
   margin-left: 30%;
   text-align: left;

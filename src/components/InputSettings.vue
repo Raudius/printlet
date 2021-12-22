@@ -19,7 +19,6 @@
           v-model="rotate_even_pages"
           input-id="basic-switch-custom"
           class="demo-switch--custom"
-          @selected="balmUI.onChange('toggle2Label', $event)"
       />
 
     </ui-form-field>

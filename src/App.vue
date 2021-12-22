@@ -1,4 +1,4 @@
-<template>
+<template id="app">
   <Form></Form>
 </template>
 
@@ -18,6 +18,7 @@ export default {
 body {
   background-color: #efefef;
 }
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

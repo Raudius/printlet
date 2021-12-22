@@ -2,8 +2,8 @@
   <div class="upload_container">
     <div>
       <ui-file accept="application/pdf" @change="loadFile"></ui-file>
-      <div v-if="fileName" class="upload_container_file_name">
-        {{fileName}}
+      <div v-if="file_name" class="upload_container_file_name">
+        {{file_name}}
       </div>
     </div>
   </div>
@@ -28,7 +28,6 @@
 </template>
 
 <script>
-import download from "downloadjs";
 import {PDFDocument} from "pdf-lib";
 
 const ORIENTATION_PORTRAIT = 0;
@@ -45,6 +44,10 @@ const pdf_orientations = [
   }
 ];
 
+/**
+ * @param file
+ * @returns {Promise<String>}
+ */
 const toBase64 = file => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.readAsDataURL(file);
@@ -94,10 +97,6 @@ export default {
       this.file_name = file.name;
       this.pdf_document = await PDFDocument.load(await toBase64(file));
       this.pdf_orientation = detectPdfOrientation(this.pdf_document);
-    },
-    async submitForm () {
-      const pdf = this.pdf_document.save();
-      download(pdf, 'test.pdf', 'application/pdf');
     }
   },
   computed: {
