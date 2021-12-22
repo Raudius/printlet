@@ -4,7 +4,7 @@
 
 <script>
 
-import InputForm from "@/components/InputFile";
+import InputForm from "@/components/InputForm";
 
 export default {
   name: 'App',
