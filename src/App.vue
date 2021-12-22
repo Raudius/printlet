@@ -1,15 +1,15 @@
 <template>
-  <InputForm></InputForm>
+  <Form></Form>
 </template>
 
 <script>
 
-import InputForm from "@/components/InputForm";
+import Form from "@/components/Form";
 
 export default {
   name: 'App',
   components: {
-    InputForm
+    Form
   }
 }
 </script>
@@ -25,5 +25,10 @@ body {
   text-align: center;
   color: #2c3e50;
 }
+
+
+label {
+  width: 200px !important;
+  padding: 0 !important;
+}
 </style>
-W
