@@ -59,7 +59,7 @@
 import {BookletOptions} from "@/printlet";
 
 export default {
-  name: "InputSettings",
+  name: "InputOptions",
   data() {
     return {
       page_turn_direction: 0,

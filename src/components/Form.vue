@@ -10,10 +10,10 @@
         info
       </ui-icon>
     </h2>
-    <InputPdf @updated="setPdfData" />
+    <InputPdf @updated="setPdfFile" />
 
     <h2>2. Settings</h2>
-    <InputSettings @updated="setBookletData" />
+    <InputOptions @updated="setBookletOptions" />
 
     <h2>3. Download booklet</h2>
 
@@ -29,7 +29,7 @@
 
 <script>
 import InputPdf from "@/components/InputPdf";
-import InputSettings from "@/components/InputSettings";
+import InputOptions from "@/components/InputOptions";
 import {vTooltip} from "balm-ui";
 import download from "downloadjs";
 import {Orientation} from "@/printlet";
@@ -37,39 +37,40 @@ import {createBooklet} from "@/booklet_maker";
 
 export default {
   name: 'Form',
-  components: {InputSettings, InputPdf},
+  components: {InputOptions, InputPdf},
   data() {
     return {
-      booklet_data: {},
-      pdf_data: {}
+      booklet_options: {},
+      pdf_file: {}
     }
   },
   methods: {
-    setBookletData(booklet_data) {
-      this.booklet_data = booklet_data;
+    setBookletOptions(booklet_data) {
+      this.booklet_options = booklet_data;
     },
-    setPdfData(pdf_data) {
-      this.pdf_data = pdf_data;
+    setPdfFile(pdf_data) {
+      this.pdf_file = pdf_data;
     },
     async submitForm () {
-      if (!this.pdf_data || !this.booklet_data) {
+      if (!this.pdf_file || !this.booklet_options) {
         alert('Missing pdf or booklet options.');
         return;
       }
 
-      createBooklet(this.pdf_data, this.booklet_data);
+      createBooklet(this.pdf_file, this.booklet_options);
 
-      const pdf = await this.pdf_data.document.save();
+      const pdf = await this.pdf_file.document.save();
       download(pdf, 'test.pdf', 'application/pdf');
     }
   },
   computed: {
     bookletTypeTip() {
-      const pdf_orientation = this.pdf_data?.orientation ?? Orientation.UNKNOWN;
-      const booklet_orientation = this.booklet_data?.booklet_orientation ?? Orientation.UNKNOWN;
+      const pdf_orientation = this.pdf_file?.getOrientation() ?? Orientation.UNKNOWN;
+      const booklet_orientation = this.booklet_options?.orientation ?? Orientation.UNKNOWN;
       if (pdf_orientation < 0 || booklet_orientation < 0) {
         return null;
       }
+
       const pages = booklet_orientation === pdf_orientation ? 2 : 4;
       return "Each booklet page will contain " + pages + " PDF pages.";
     }

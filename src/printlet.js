@@ -19,6 +19,8 @@ export async function loadPdfFile(file)
 }
 
 class PdfFile {
+    orientation_manual = Orientation.UNKNOWN;
+
     /**
      * @param {String} file_name
      * @param {PDFDocument} document
@@ -28,12 +30,16 @@ class PdfFile {
         this.document = document;
         this.orientation = detectPdfOrientation(document);
     }
+
+    getOrientation () {
+        return (this.orientation !== Orientation.UNKNOWN) ? this.orientation : this.orientation_manual;
+    }
 }
 
 export class BookletOptions {
-    constructor(page_turn_direction, booklet_orientation, rotate_even_pages) {
+    constructor(page_turn_direction, orientation, rotate_even_pages) {
         this.page_turn_direction = page_turn_direction;
-        this.booklet_orientation = booklet_orientation;
+        this.orientation = orientation;
         this.rotate_even_pages = rotate_even_pages;
     }
 }

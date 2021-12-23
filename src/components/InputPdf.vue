@@ -18,7 +18,7 @@
       <label class="min_width_m">Select orientation:</label>
       <span>
             <ui-segmented-buttons
-                v-model="pdf_orientation_manual"
+                v-model="pdf_file.pdf_orientation_manual"
                 @change="updateForm"
                 :items="[
                   {
@@ -38,14 +38,13 @@
 </template>
 
 <script>
-import {loadPdfFile, Orientation} from "@/printlet";
+import {loadPdfFile} from "@/printlet";
 
 export default {
   name: "InputPdf",
   data() {
     return {
-      pdf_orientation_manual: Orientation.UNKNOWN,
-      pdf_file: null,
+      pdf_file: {},
     }
   },
   emits: {
@@ -59,7 +58,7 @@ export default {
       this.updateForm();
     },
     updateForm() {
-      this.$emit('updated', this.pdfData)
+      this.$emit('updated', this.pdf_file)
     }
   },
   computed: {
@@ -68,15 +67,6 @@ export default {
     },
     isPdfOrientationAmbiguous() {
       return this.pdf_file?.document !== null && this.pdf_file?.orientation < 0;
-    },
-    pdfOrientation() {
-      return this.pdf_file.orientation >= 0 ? this.pdf_file.orientation : this.pdf_orientation_manual;
-    },
-    pdfData() {
-      return {
-        file: this.pdf_file,
-        orientation: this.pdfOrientation
-      }
     }
   }
 }
