@@ -10,12 +10,17 @@
         info
       </ui-icon>
     </h2>
-    <InputPdf ref="input_pdf"/>
+    <InputPdf ref="input_pdf" @updated="setPdfData" />
 
     <h2>2. Settings</h2>
-    <InputSettings />
+    <InputSettings ref="input_settings" @updated="setBookletData" />
 
     <h2>3. Download booklet</h2>
+
+    <ui-alert v-if="bookletTypeTip" class="no_top_margin" state="info">
+      {{ bookletTypeTip }}
+    </ui-alert>
+    <br/>
     <ui-button raised icon="download_for_offline" @click="submitForm">
       Download
     </ui-button>
@@ -31,18 +36,39 @@ import download from "downloadjs";
 export default {
   name: 'Form',
   components: {InputSettings, InputPdf},
+  data() {
+    return {
+      booklet_data: {},
+      pdf_data: {}
+    }
+  },
   methods: {
+    setBookletData(booklet_data) {
+      this.booklet_data = booklet_data;
+    },
+    setPdfData(pdf_data) {
+      this.pdf_data = pdf_data;
+    },
     async submitForm () {
-      const doc = this.getPdf();
+      const doc = this.pdf_data?.pdf_document;
       if (!doc) {
         alert('No pdf loaded.');
+        return;
       }
 
       const pdf = await doc.save();
       download(pdf, 'test.pdf', 'application/pdf');
-    },
-    getPdf () {
-      return this.$refs.input_pdf.pdf_document;
+    }
+  },
+  computed: {
+    bookletTypeTip() {
+      const pdf_orientation = this.pdf_data?.pdf_orientation ?? -1;
+      const booklet_orientation = this.booklet_data?.booklet_orientation ?? -1
+      if (pdf_orientation < 0 || booklet_orientation < 0) {
+        return null;
+      }
+      const pages = booklet_orientation === pdf_orientation ? 2 : 4;
+      return "Each booklet page will contain " + pages + " PDF pages.";
     }
   },
   directives: {

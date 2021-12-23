@@ -19,6 +19,7 @@
       <span>
             <ui-segmented-buttons
                 v-model="pdf_orientation_manual"
+                @change="updateForm"
                 :items="pdf_orientations"
                 single-select
             />
@@ -91,17 +92,34 @@ export default {
       file_name: null
     }
   },
+  emits: {
+    'updated': null
+  },
   methods: {
     async loadFile (event) {
       const file = event[0].sourceFile;
       this.file_name = file.name;
       this.pdf_document = await PDFDocument.load(await toBase64(file));
       this.pdf_orientation = detectPdfOrientation(this.pdf_document);
+
+      this.updateForm();
+    },
+    updateForm() {
+      this.$emit('updated', this.pdfData)
     }
   },
   computed: {
     isPdfOrientationAmbiguous() {
       return this.pdf_document !== null && this.pdf_orientation < 0;
+    },
+    pdfOrientation() {
+      return this.pdf_orientation >= 0 ? this.pdf_orientation : this.pdf_orientation_manual;
+    },
+    pdfData() {
+      return {
+        pdf_document: this.pdf_document,
+        pdf_orientation: this.pdfOrientation
+      }
     }
   }
 }

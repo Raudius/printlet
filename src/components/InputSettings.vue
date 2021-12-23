@@ -5,11 +5,10 @@
       <span>
             <ui-segmented-buttons
                 v-model="booklet_orientation"
+                @change="updated"
                 :items="booklet_orientations"
                 single-select
             />
-            <br/>
-            {{ bookletTypeTip }}
           </span>
     </ui-form-field>
 
@@ -17,6 +16,7 @@
       <label>Rotate alternate pages 180°:</label>
       <ui-switch
           v-model="rotate_even_pages"
+          @change="updated"
           input-id="basic-switch-custom"
           class="demo-switch--custom"
       />
@@ -25,7 +25,7 @@
 
     <ui-form-field>
       <label>Ignore pages:</label>
-      <ui-textfield v-model="ignore_pages"></ui-textfield>
+      <ui-textfield v-model="ignore_pages" @change="updated"></ui-textfield>
     </ui-form-field>
   </ui-form>
 </template>
@@ -50,22 +50,24 @@ export default {
       rotate_even_pages: true,
       ignore_pages: '',
       booklet_orientation: -1,
-      pdf_orientation: -1,
-      pdf_orientation_manual: -1,
       pdf_document: null,
       file_name: null
+    }
+  },
+  emits: {
+    'updated': null
+  },
+  methods: {
+    updated() {
+      this.$emit('updated', this.bookletSettings);
     }
   },
   computed: {
     fileName() {
       return this.file_name;
     },
-    bookletTypeTip() {
-      if (this.booklet_orientation < 0 || this.pdf_orientation < 0) {
-        return "";
-      }
-      const pages = this.booklet_orientation === this.pdf_orientation ? 2 : 4;
-      return "Each booklet page will contain " + pages + " PDF pages.";
+    bookletSettings() {
+      return {...this.$data};
     }
   }
 }
