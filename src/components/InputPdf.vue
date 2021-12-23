@@ -38,13 +38,13 @@
 </template>
 
 <script>
-import {loadPdfFile} from "@/printlet";
+import {loadPdfFile, Orientation} from "@/printlet";
 
 export default {
   name: "InputPdf",
   data() {
     return {
-      pdf_orientation_manual: -1,
+      pdf_orientation_manual: Orientation.UNKNOWN,
       pdf_file: null,
     }
   },
@@ -67,7 +67,7 @@ export default {
       return this.pdf_file?.file_name;
     },
     isPdfOrientationAmbiguous() {
-      return this.pdf_file?.pdf_document !== null && this.pdf_file?.orientation < 0;
+      return this.pdf_file?.document !== null && this.pdf_file?.orientation < 0;
     },
     pdfOrientation() {
       return this.pdf_file.orientation >= 0 ? this.pdf_file.orientation : this.pdf_orientation_manual;

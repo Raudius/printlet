@@ -1,7 +1,10 @@
 import {PDFDocument} from "pdf-lib";
 
-export const ORIENTATION_PORTRAIT = 0;
-export const ORIENTATION_LANDSCAPE = 1;
+export const Orientation = {
+    UNKNOWN: -1,
+    PORTRAIT: 0,
+    LANDSCAPE: 1
+};
 
 /**
  * @param {File} file
@@ -20,10 +23,18 @@ class PdfFile {
      * @param {String} file_name
      * @param {PDFDocument} document
      */
-    constructor(file_name, document) {
+    constructor (file_name, document) {
         this.file_name = file_name;
         this.document = document;
         this.orientation = detectPdfOrientation(document);
+    }
+}
+
+export class BookletOptions {
+    constructor(page_turn_direction, booklet_orientation, rotate_even_pages) {
+        this.page_turn_direction = page_turn_direction;
+        this.booklet_orientation = booklet_orientation;
+        this.rotate_even_pages = rotate_even_pages;
     }
 }
 
@@ -36,7 +47,7 @@ function detectPdfOrientation (pdf_document) {
         const page_orientation = detectPageOrientation(page)
 
         if (orientation !== page_orientation) {
-            return -1; // undefined page orientation.
+            return Orientation.UNKNOWN;
         }
     }
     return orientation;
@@ -48,8 +59,8 @@ function detectPageOrientation (page) {
     const landscape = width > height;
 
     return (landscape && !rotated) || (!landscape && rotated)
-        ? ORIENTATION_LANDSCAPE
-        : ORIENTATION_PORTRAIT;
+        ? Orientation.LANDSCAPE
+        : Orientation.PORTRAIT;
 }
 
 /**

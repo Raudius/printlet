@@ -50,17 +50,13 @@
           input-id="basic-switch-custom"
           class="demo-switch--custom"
       />
-
-    </ui-form-field>
-
-    <ui-form-field>
-      <label>Ignore pages:</label>
-      <ui-textfield v-model="ignore_pages" @change="updated"></ui-textfield>
     </ui-form-field>
   </ui-form>
 </template>
 
 <script>
+
+import {BookletOptions} from "@/printlet";
 
 export default {
   name: "InputSettings",
@@ -68,10 +64,7 @@ export default {
     return {
       page_turn_direction: 0,
       rotate_even_pages: true,
-      ignore_pages: '',
-      booklet_orientation: -1,
-      pdf_document: null,
-      file_name: null
+      booklet_orientation: -1
     }
   },
   emits: {
@@ -79,15 +72,12 @@ export default {
   },
   methods: {
     updated() {
-      this.$emit('updated', this.bookletSettings);
+      this.$emit('updated', this.bookletOptions);
     }
   },
   computed: {
-    fileName() {
-      return this.file_name;
-    },
-    bookletSettings() {
-      return {...this.$data};
+    bookletOptions() {
+      return new BookletOptions(this.page_turn_direction, this.booklet_orientation, this.rotate_even_pages);
     }
   }
 }

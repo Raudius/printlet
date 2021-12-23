@@ -32,6 +32,8 @@ import InputPdf from "@/components/InputPdf";
 import InputSettings from "@/components/InputSettings";
 import {vTooltip} from "balm-ui";
 import download from "downloadjs";
+import {Orientation} from "@/printlet";
+import {createBooklet} from "@/booklet_maker";
 
 export default {
   name: 'Form',
@@ -50,20 +52,21 @@ export default {
       this.pdf_data = pdf_data;
     },
     async submitForm () {
-      const doc = this.pdf_data?.pdf_document;
-      if (!doc) {
-        alert('No pdf loaded.');
+      if (!this.pdf_data || !this.booklet_data) {
+        alert('Missing pdf or booklet options.');
         return;
       }
 
-      const pdf = await doc.save();
+      createBooklet(this.pdf_data, this.booklet_data);
+
+      const pdf = await this.pdf_data.document.save();
       download(pdf, 'test.pdf', 'application/pdf');
     }
   },
   computed: {
     bookletTypeTip() {
-      const pdf_orientation = this.pdf_data?.orientation ?? -1;
-      const booklet_orientation = this.booklet_data?.booklet_orientation ?? -1
+      const pdf_orientation = this.pdf_data?.orientation ?? Orientation.UNKNOWN;
+      const booklet_orientation = this.booklet_data?.booklet_orientation ?? Orientation.UNKNOWN;
       if (pdf_orientation < 0 || booklet_orientation < 0) {
         return null;
       }
