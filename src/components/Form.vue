@@ -62,7 +62,7 @@ export default {
   },
   computed: {
     bookletTypeTip() {
-      const pdf_orientation = this.pdf_data?.pdf_orientation ?? -1;
+      const pdf_orientation = this.pdf_data?.orientation ?? -1;
       const booklet_orientation = this.booklet_data?.booklet_orientation ?? -1
       if (pdf_orientation < 0 || booklet_orientation < 0) {
         return null;

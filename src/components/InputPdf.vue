@@ -2,8 +2,8 @@
   <div class="upload_container">
     <div>
       <ui-file accept="application/pdf" @change="loadFile"></ui-file>
-      <div v-if="file_name" class="upload_container_file_name">
-        {{file_name}}
+      <div v-if="fileName" class="upload_container_file_name">
+        {{fileName}}
       </div>
     </div>
   </div>
@@ -20,7 +20,16 @@
             <ui-segmented-buttons
                 v-model="pdf_orientation_manual"
                 @change="updateForm"
-                :items="pdf_orientations"
+                :items="[
+                  {
+                    icon: 'crop_portrait',
+                    text: 'Portrait'
+                  },
+                  {
+                    icon: 'crop_landscape',
+                    text: 'Landscape'
+                  }
+                ]"
                 single-select
             />
           </span>
@@ -29,67 +38,14 @@
 </template>
 
 <script>
-import {PDFDocument} from "pdf-lib";
-
-const ORIENTATION_PORTRAIT = 0;
-const ORIENTATION_LANDSCAPE = 1;
-
-const pdf_orientations = [
-  {
-    icon: 'crop_portrait',
-    text: 'Portrait'
-  },
-  {
-    icon: 'crop_landscape',
-    text: 'Landscape'
-  }
-];
-
-/**
- * @param file
- * @returns {Promise<String>}
- */
-const toBase64 = file => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = error => reject(error);
-});
-
-const detectPageOrientation = (page) => {
-  const { width, height } = page.getSize()
-  const rotated = (page.getRotation().angle / 90) % 2 !== 0;
-  const landscape = width > height;
-
-  return (landscape && !rotated) || (!landscape && rotated)
-      ? ORIENTATION_LANDSCAPE
-      : ORIENTATION_PORTRAIT;
-}
-
-const detectPdfOrientation = (pdf_document) => {
-  const pages = pdf_document.getPages();
-
-  let orientation = detectPageOrientation(pages[0]);
-  for (let i=0; i<pages.length; i++) {
-    const page = pages[i];
-    const page_orientation = detectPageOrientation(page)
-
-    if (orientation !== page_orientation) {
-      return -1; // undefined page orientation.
-    }
-  }
-  return orientation;
-}
+import {loadPdfFile} from "@/printlet";
 
 export default {
   name: "InputPdf",
   data() {
     return {
-      pdf_orientations,
-      pdf_orientation: -1,
       pdf_orientation_manual: -1,
-      pdf_document: null,
-      file_name: null
+      pdf_file: null,
     }
   },
   emits: {
@@ -98,9 +54,7 @@ export default {
   methods: {
     async loadFile (event) {
       const file = event[0].sourceFile;
-      this.file_name = file.name;
-      this.pdf_document = await PDFDocument.load(await toBase64(file));
-      this.pdf_orientation = detectPdfOrientation(this.pdf_document);
+      this.pdf_file = await loadPdfFile(file);
 
       this.updateForm();
     },
@@ -109,16 +63,19 @@ export default {
     }
   },
   computed: {
+    fileName() {
+      return this.pdf_file?.file_name;
+    },
     isPdfOrientationAmbiguous() {
-      return this.pdf_document !== null && this.pdf_orientation < 0;
+      return this.pdf_file?.pdf_document !== null && this.pdf_file?.orientation < 0;
     },
     pdfOrientation() {
-      return this.pdf_orientation >= 0 ? this.pdf_orientation : this.pdf_orientation_manual;
+      return this.pdf_file.orientation >= 0 ? this.pdf_file.orientation : this.pdf_orientation_manual;
     },
     pdfData() {
       return {
-        pdf_document: this.pdf_document,
-        pdf_orientation: this.pdfOrientation
+        file: this.pdf_file,
+        orientation: this.pdfOrientation
       }
     }
   }
