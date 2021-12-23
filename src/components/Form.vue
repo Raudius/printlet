@@ -10,10 +10,10 @@
         info
       </ui-icon>
     </h2>
-    <InputPdf ref="input_pdf" @updated="setPdfData" />
+    <InputPdf @updated="setPdfData" />
 
     <h2>2. Settings</h2>
-    <InputSettings ref="input_settings" @updated="setBookletData" />
+    <InputSettings @updated="setBookletData" />
 
     <h2>3. Download booklet</h2>
 
@@ -79,10 +79,13 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+@media (orientation: landscape) {
+  .form {
+    margin-right: 30%;
+    margin-left: 30%;
+  }
+}
 .form {
-  margin-right: 30%;
-  margin-left: 30%;
   text-align: left;
 }
 </style>

@@ -6,7 +6,37 @@
             <ui-segmented-buttons
                 v-model="booklet_orientation"
                 @change="updated"
-                :items="booklet_orientations"
+                :items="[
+                  {
+                    icon: 'border_vertical',
+                    text: 'Vertical fold'
+                  },
+                  {
+                    icon: 'border_horizontal',
+                    text: 'Horizontal fold'
+                  }
+                ]"
+                single-select
+            />
+          </span>
+    </ui-form-field>
+
+    <ui-form-field>
+      <label>Page-turn direction:</label>
+      <span>
+            <ui-segmented-buttons
+                v-model="page_turn_direction"
+                @change="updated"
+                :items="[
+                  {
+                    icon: 'east',
+                    text: 'Left to right'
+                  },
+                  {
+                    icon: 'west',
+                    text: 'Right to left'
+                  },
+                ]"
                 single-select
             />
           </span>
@@ -31,22 +61,12 @@
 </template>
 
 <script>
-const booklet_orientations = [
-  {
-    icon: 'border_vertical',
-    text: 'Vertical fold'
-  },
-  {
-    icon: 'border_horizontal',
-    text: 'Horizontal fold'
-  }
-];
 
 export default {
   name: "InputSettings",
   data() {
     return {
-      booklet_orientations,
+      page_turn_direction: 0,
       rotate_even_pages: true,
       ignore_pages: '',
       booklet_orientation: -1,
