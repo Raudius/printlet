@@ -40,8 +40,8 @@ export default {
   components: {InputOptions, InputPdf},
   data() {
     return {
-      booklet_options: {},
-      pdf_file: {}
+      booklet_options: null,
+      pdf_file: null
     }
   },
   methods: {
@@ -57,9 +57,8 @@ export default {
         return;
       }
 
-      createBooklet(this.pdf_file, this.booklet_options);
+      const pdf = await createBooklet(this.pdf_file, this.booklet_options);
 
-      const pdf = await this.pdf_file.document.save();
       download(pdf, 'test.pdf', 'application/pdf');
     }
   },

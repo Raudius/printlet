@@ -4,7 +4,7 @@
       <label>Booklet orientation:</label>
       <span>
             <ui-segmented-buttons
-                v-model="booklet_orientation"
+                v-model="options.orientation"
                 @change="updated"
                 :items="[
                   {
@@ -25,7 +25,7 @@
       <label>Page-turn direction:</label>
       <span>
             <ui-segmented-buttons
-                v-model="page_turn_direction"
+                v-model="options.page_turn_direction"
                 @change="updated"
                 :items="[
                   {
@@ -45,7 +45,7 @@
     <ui-form-field>
       <label>Rotate alternate pages 180°:</label>
       <ui-switch
-          v-model="rotate_even_pages"
+          v-model="options.rotate_even_pages"
           @change="updated"
           input-id="basic-switch-custom"
           class="demo-switch--custom"
@@ -62,9 +62,7 @@ export default {
   name: "InputOptions",
   data() {
     return {
-      page_turn_direction: 0,
-      rotate_even_pages: true,
-      booklet_orientation: -1
+      options: new BookletOptions(1,0,true)
     }
   },
   emits: {
@@ -72,13 +70,11 @@ export default {
   },
   methods: {
     updated() {
-      this.$emit('updated', this.bookletOptions);
+      this.$emit('updated', this.options);
     }
   },
-  computed: {
-    bookletOptions() {
-      return new BookletOptions(this.page_turn_direction, this.booklet_orientation, this.rotate_even_pages);
-    }
+  mounted() {
+    this.updated();
   }
 }
 </script>
