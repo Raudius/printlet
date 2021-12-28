@@ -2,12 +2,12 @@ import {PageSizes, PDFDocument} from "pdf-lib";
 import {Orientation} from "@/printlet";
 
 class Vec2D {
-    constructor(x, y) {
+    constructor(x=0, y=0) {
         this.x = x;
         this.y = y;
     }
 
-    transpose() {
+    transpose () {
         [this.x, this.y] = [this.y, this.x]
     }
 }
@@ -20,7 +20,7 @@ class Vec2D {
 export async function createBooklet(pdf_file, booklet_options) {
     const booklet_page_size = PageSizes.A4;
     const booklet_page_count = calculateBookletPageCount(pdf_file, booklet_options);
-
+    const page_grid = calculatePageGrid(pdf_file, booklet_options);
     const booklet_doc = await PDFDocument.create();
 
     const pages = [];
@@ -28,13 +28,15 @@ export async function createBooklet(pdf_file, booklet_options) {
         pages[i] = booklet_doc.addPage(booklet_page_size);
     }
 
-    let page_align_top = false;
     const rotate_page = isPageRotated(pdf_file, booklet_options);
+    const render_left_to_right = !rotate_page;
+    const grid_position = new Vec2D(); // (x = 0) = render_left_to_right ? left : right ; (y = 0) = bottom
 
-    // Reload pdf (needed for embedding pages) - pdf-lib bug?
+    const page_dimensions = new Vec2D(booklet_page_size[0] / page_grid.x, booklet_page_size[1] / page_grid.y)
+
     const pdf = await PDFDocument.load(await pdf_file.document.save());
     for (let i=0; i<pdf.getPageCount(); i++) {
-        const booklet_page_index = calculateBookletPageForPdfPage(i, booklet_page_count);
+        const booklet_page_index = calculateBookletPageForPdfPage(i, booklet_page_count, page_grid);
         const booklet_page = pages[booklet_page_index];
 
         const page = pdf.getPages()[i];
@@ -44,30 +46,51 @@ export async function createBooklet(pdf_file, booklet_options) {
             rotate_page ? [0, -1, 1, 0, 0, page.getWidth()] : null
         );
 
-        const page_dimens = new Vec2D(booklet_page.getWidth(), booklet_page.getHeight()/2);
-        const page_translation = new Vec2D( 0, page_align_top ? booklet_page.getHeight()/2 : 0);
-        rotate_page && page_dimens.transpose();
+        rotate_page && page_dimensions.transpose();
+        const scale_factor = Math.min(page_dimensions.x / page.getWidth(), page_dimensions.y / page.getHeight());
+        rotate_page && page_dimensions.transpose();
 
         booklet_page.drawPage(embedded_page, {
-            height: page_dimens.y,
-            width: page_dimens.x,
-            x: page_translation.x,
-            y: page_translation.y
+            x: (render_left_to_right ? grid_position.x : page_grid.x - grid_position.x - 1) * page_dimensions.x,
+            y: grid_position.y * page_dimensions.y,
+            xScale: scale_factor,
+            yScale: scale_factor
         });
 
-        page_align_top = !page_align_top;
+        advanceGridPosition(grid_position, page_grid);
     }
 
     return await booklet_doc.save();
 }
 
 /**
+ * Advance the current position along the grid.
+ * @param grid_position
+ * @param grid
+ */
+function advanceGridPosition(grid_position, grid) {
+    if (++grid_position.x >= grid.x) {
+        grid_position.x = 0;
+        if (++grid_position.y >= grid.y) {
+            grid_position.y = 0;
+        }
+    }
+}
+
+/**
+ * Calculates the page of the output PDF on which a given page of the input PDF belongs.
+ * This is calculated by first determining the "index" of the input page. This index groups consecutive pages that will
+ * appear side by side on the output PDF. These can then be treated as a page on a PDF where consecutive pages are not
+ * shown side by side.
+ *
  * @param {number} pdf_page
  * @param {number} booklet_page_count
+ * @param {Vec2D} page_grid
  * @returns {number}
  */
-function calculateBookletPageForPdfPage(pdf_page, booklet_page_count) {
-    return Math.abs((pdf_page % booklet_page_count) - ((booklet_page_count-1) * Math.floor(pdf_page/booklet_page_count)));
+function calculateBookletPageForPdfPage(pdf_page, booklet_page_count, page_grid) {
+    const index = Math.floor(pdf_page / ((page_grid.x*page_grid.y) / 2));
+    return Math.abs((index % booklet_page_count) - ((booklet_page_count-1) * Math.floor(index/booklet_page_count)));
 }
 
 /**
@@ -118,11 +141,6 @@ export function calculatePdfPagesPerBookletPage(pdf_file, booklet_options) {
  * @returns {Vec2D}
  */
 function calculatePageGrid(pdf_file, booklet_options) {
-    const grid = pdf_file.getOrientation() === booklet_options.orientation
-        ? new Vec2D(2,1)
-        : new Vec2D(2,2);
-
-    booklet_options.orientation === Orientation.LANDSCAPE && grid.transpose();
-
-    return grid;
+    return pdf_file.getOrientation() === booklet_options.orientation
+        ? new Vec2D(1,2) : new Vec2D(2,2);
 }
