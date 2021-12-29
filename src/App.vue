@@ -29,7 +29,18 @@ body {
 
 
 label {
-  width: 200px !important;
+  width: 240px !important;
   padding: 0 !important;
+}
+
+@keyframes tooltip_background {
+  0%   {background-color: rgba(0,0,0,0);}
+  100% {background-color: rgba(0,0,0,0.5);}
+}
+
+.mdc-tooltip--shown{
+  background-color: rgba(0,0,0,0.5);
+  animation-name: tooltip_background;
+  animation-duration: 1s;
 }
 </style>

@@ -1,31 +1,42 @@
 <template>
   <ui-form nowrap item-margin-bottom="16">
     <ui-form-field>
-      <label>Booklet orientation:</label>
+      <label>
+        Booklet type:
+        <ui-icon
+          v-tooltip="'Fit 2 input pages per booklet page by selecting the \'double page\' option.'"
+          :size="18"
+          aria-describedby="tooltip_booklet_type">info</ui-icon>
+      </label>
       <span>
-            <ui-segmented-buttons
-                v-model="options.orientation"
-                @change="updated"
-                :items="[
-                  {
-                    icon: 'border_vertical',
-                    text: 'Vertical fold'
-                  },
-                  {
-                    icon: 'border_horizontal',
-                    text: 'Horizontal fold'
-                  }
-                ]"
-                single-select
-            />
-          </span>
+        <ui-segmented-buttons
+            :model-value="this.options.pages_per_page-1"
+            @update:modelValue="updatePagesPerPage"
+            single-select
+            :items="[
+              { text: 'Single page', icon: 'rectangle' },
+              { text: 'Double page', icon: 'view_agenda' }
+            ]"
+        />
+      </span>
     </ui-form-field>
 
     <ui-form-field>
-      <label>Page-turn direction:</label>
+      <label>Print page size:</label>
+      <span>
+        <ui-select
+            v-model="options.page_size"
+            :options="PageSizeOptions"
+            @change="updated"
+        ></ui-select>
+      </span>
+    </ui-form-field>
+
+    <ui-form-field>
+      <label>Text read direction:</label>
       <span>
             <ui-segmented-buttons
-                v-model="options.page_turn_direction"
+                v-model="options.text_read_direction"
                 @change="updated"
                 :items="[
                   {
@@ -43,7 +54,14 @@
     </ui-form-field>
 
     <ui-form-field>
-      <label>Rotate alternate pages 180°:</label>
+      <label>
+        Rotate alternate pages 180°:
+        <ui-icon
+            v-tooltip="'Some printers may flip the back of a double-sided print. You can correct this behaviour by ticking this option.'"
+            :size="18"
+            aria-describedby="tooltip_rotate_pages">info</ui-icon>
+
+      </label>
       <ui-switch
           v-model="options.rotate_even_pages"
           @change="updated"
@@ -55,14 +73,20 @@
 </template>
 
 <script>
-
 import {BookletOptions} from "@/printlet";
+import {PageSizes} from "pdf-lib";
+import {vTooltip} from "balm-ui";
+
+const PageSizeOptions = Object.keys(PageSizes).map((key) => {
+  return { label: key, value: key }
+});
 
 export default {
   name: "InputOptions",
   data() {
     return {
-      options: new BookletOptions(1,0,true)
+      PageSizeOptions,
+      options: new BookletOptions()
     }
   },
   emits: {
@@ -71,14 +95,20 @@ export default {
   methods: {
     updated() {
       this.$emit('updated', this.options);
+    },
+    updatePagesPerPage(value) {
+      this.options.pages_per_page = value + 1;
+      this.updated();
     }
   },
   mounted() {
     this.updated();
+  },
+  directives: {
+    'tooltip': vTooltip
   }
 }
 </script>
 
 <style scoped>
-
 </style>

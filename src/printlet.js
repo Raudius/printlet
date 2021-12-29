@@ -3,7 +3,9 @@ import {PDFDocument} from "pdf-lib";
 export const Orientation = {
     UNKNOWN: -1,
     PORTRAIT: 0,
-    LANDSCAPE: 1
+    LANDSCAPE: 1,
+    VERTICAL: 0,
+    HORIZONTAL: 1
 };
 
 /**
@@ -37,10 +39,21 @@ class PdfFile {
 }
 
 export class BookletOptions {
-    constructor(page_turn_direction, orientation, rotate_even_pages) {
-        this.page_turn_direction = page_turn_direction;
-        this.orientation = orientation;
-        this.rotate_even_pages = rotate_even_pages;
+    constructor() {
+        this.text_read_direction = 0;
+        this.pages_per_page = 1;
+        this.rotate_even_pages = false;
+        this.page_size = "A4"
+    }
+
+    /**
+     * Returns the fold orientation given a vertical page.
+     * @returns {number}
+     */
+    getFoldOrientation () {
+        return this.pages_per_page % 2 === 0
+            ? Orientation.HORIZONTAL
+            : Orientation.VERTICAL;
     }
 }
 
