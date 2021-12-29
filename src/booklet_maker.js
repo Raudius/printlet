@@ -1,5 +1,5 @@
 import {PageSizes, PDFDocument, degrees} from "pdf-lib";
-import {Orientation} from "@/printlet";
+import {Orientation, TextDirection} from "@/printlet";
 
 class Vec2D {
     constructor(x=0, y=0) {
@@ -20,19 +20,21 @@ class Vec2D {
 export async function createBooklet(pdf_file, booklet_options) {
     const booklet_page_size = PageSizes[booklet_options.page_size];
     const booklet_page_count = calculateBookletPageCount(pdf_file, booklet_options);
-    const page_grid = calculatePageGrid(pdf_file, booklet_options);
-    const booklet_doc = await PDFDocument.create();
 
-    const pages = [];
+    const booklet_doc = await PDFDocument.create();
     for (let i=0; i<booklet_page_count; i++) {
-        pages[i] = booklet_doc.addPage(booklet_page_size);
-        if (booklet_options.rotate_even_pages && i % 2 ===1) {
-            pages[i].setRotation(degrees(180))
+        const page = booklet_doc.addPage(booklet_page_size);
+        if (booklet_options.rotate_even_pages && i % 2 === 1) {
+            page.setRotation(degrees(180))
         }
     }
 
+    const text_r2l = booklet_options.text_read_direction === TextDirection.R2L;
     const rotate_page = isPageRotated(pdf_file, booklet_options);
-    const render_left_to_right = !rotate_page;
+    const render_left_to_right = !rotate_page && !text_r2l;
+    const render_down_to_up = !rotate_page || !text_r2l;
+
+    const page_grid = calculatePageGrid(pdf_file, booklet_options);
     const grid_position = new Vec2D(); // (x = 0) = render_left_to_right ? left : right ; (y = 0) = bottom
 
     const page_dimensions = new Vec2D(booklet_page_size[0] / page_grid.x, booklet_page_size[1] / page_grid.y)
@@ -40,7 +42,7 @@ export async function createBooklet(pdf_file, booklet_options) {
     const pdf = await PDFDocument.load(await pdf_file.document.save());
     for (let i=0; i<pdf.getPageCount(); i++) {
         const booklet_page_index = calculateBookletPageForPdfPage(i, booklet_page_count, page_grid);
-        const booklet_page = pages[booklet_page_index];
+        const booklet_page = booklet_doc.getPage(booklet_page_index);
 
         const page = pdf.getPages()[i];
         const embedded_page = await booklet_doc.embedPage(
@@ -55,7 +57,7 @@ export async function createBooklet(pdf_file, booklet_options) {
 
         booklet_page.drawPage(embedded_page, {
             x: (render_left_to_right ? grid_position.x : page_grid.x - grid_position.x - 1) * page_dimensions.x,
-            y: grid_position.y * page_dimensions.y,
+            y: (render_down_to_up ? grid_position.y : page_grid.y - grid_position.y - 1) * page_dimensions.y,
             xScale: scale_factor,
             yScale: scale_factor
         });
@@ -104,7 +106,7 @@ function calculateBookletPageForPdfPage(pdf_page, booklet_page_count, page_grid)
  * @returns {boolean}
  */
 function isPageRotated(pdf_file, booklet_options) {
-    return booklet_options.getFoldOrientation() === Orientation.VERTICAL;
+    return booklet_options.getFoldOrientation(pdf_file) === Orientation.VERTICAL;
 }
 
 /**
@@ -144,6 +146,6 @@ export function calculatePdfPagesPerBookletPage(pdf_file, booklet_options) {
  * @returns {Vec2D}
  */
 function calculatePageGrid(pdf_file, booklet_options) {
-    return pdf_file.getOrientation() === booklet_options.getFoldOrientation()
+    return pdf_file.getOrientation() === booklet_options.getFoldOrientation(pdf_file)
         ? new Vec2D(1,2) : new Vec2D(2,2);
 }

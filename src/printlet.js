@@ -8,6 +8,11 @@ export const Orientation = {
     HORIZONTAL: 1
 };
 
+export const TextDirection = {
+    L2R: 0,
+    R2L: 1
+}
+
 /**
  * @param {File} file
  * @returns {Promise<PdfFile>}
@@ -40,7 +45,7 @@ class PdfFile {
 
 export class BookletOptions {
     constructor() {
-        this.text_read_direction = 0;
+        this.text_read_direction = TextDirection.L2R;
         this.pages_per_page = 1;
         this.rotate_even_pages = false;
         this.page_size = "A4"
@@ -50,10 +55,13 @@ export class BookletOptions {
      * Returns the fold orientation given a vertical page.
      * @returns {number}
      */
-    getFoldOrientation () {
+    getFoldOrientation (pdf_file) {
+        const pdf_orientation = pdf_file.getOrientation();
+        const pdf_orientation_opposite = pdf_orientation === Orientation.PORTRAIT ? Orientation.LANDSCAPE : Orientation.PORTRAIT;
+
         return this.pages_per_page % 2 === 0
-            ? Orientation.HORIZONTAL
-            : Orientation.VERTICAL;
+            ? pdf_orientation_opposite
+            : pdf_orientation;
     }
 }
 
