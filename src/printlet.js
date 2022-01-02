@@ -113,14 +113,15 @@ export class BookletOptions {
 }
 
 /**
+ * @param {String} base_name
  * @param {Uint8Array[]} files
  * @returns {Promise<Uint8Array>}
  */
-export async function createZip (files) {
+export async function createZip (base_name, files) {
     let zip = new JSZip();
 
     files.forEach((file, index) => {
-        const name = "booklet_" + (index+1) + ".pdf";
+        const name = base_name + "_" + (index+1) + ".pdf";
         zip.file(name, file)
     });
 

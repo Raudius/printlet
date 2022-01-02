@@ -15,23 +15,23 @@ class Vec2D {
 /**
  * @param {PdfFile} pdf_file
  * @param {BookletOptions} booklet_options
- * @returns {Uint8Array[]}
+ * @returns {Promise<Uint8Array[]>}
  */
-export async function createBooklets(pdf_file, booklet_options) {
-    return booklet_options.getPageProviders(pdf_file).map(
-        (page_provider) => {
-            return createBooklet(pdf_file, booklet_options, page_provider);
+export function createBooklets(pdf_file, booklet_options) {
+    return Promise.all(booklet_options.getPageProviders(pdf_file).map(
+        async (page_provider) => {
+            return await createBooklet(pdf_file, booklet_options, page_provider);
         }
-    )
+    ));
 }
 
 /**
  * @param {PdfFile} pdf_file
  * @param {BookletOptions} booklet_options
  * @param {PageProvider|null} page_provider
- * @returns {Uint8Array}
+ * @returns {Promise<Uint8Array>}
  */
-export async function createBooklet(pdf_file, booklet_options, page_provider=null) {
+async function createBooklet(pdf_file, booklet_options, page_provider=null) {
     if (page_provider === null) {
         page_provider = new PageProvider(0, pdf_file.document.getPageCount());
     }
@@ -85,7 +85,7 @@ export async function createBooklet(pdf_file, booklet_options, page_provider=nul
         i = page_provider.next();
     }
 
-    return await booklet_doc.save();
+    return booklet_doc.save();
 }
 
 /**

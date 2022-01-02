@@ -57,12 +57,15 @@ export default {
         return;
       }
 
+      const base_name = this.pdf_file.file_name.replaceAll('.pdf', '') + '_booklet';
       const pdfs = await createBooklets(this.pdf_file, this.booklet_options);
+
+      console.log(pdfs);
       if (pdfs.length === 1) {
-        download(pdfs[0], 'test.pdf', 'application/pdf');
+        download(pdfs[0], base_name + '.pdf', 'application/pdf');
       } else {
-        const zip = await createZip(pdfs);
-        download(zip, 'test.zip', 'application/zip');
+        const zip = await createZip(base_name, pdfs);
+        download(zip, base_name + '.zip', 'application/zip');
       }
     }
   },
