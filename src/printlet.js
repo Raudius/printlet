@@ -1,4 +1,6 @@
 import {PDFDocument} from "pdf-lib";
+import {calculatePdfPagesPerBookletPage} from "@/booklet_maker";
+import * as JSZip from 'jszip';
 
 export const Orientation = {
     UNKNOWN: -1,
@@ -43,12 +45,39 @@ class PdfFile {
     }
 }
 
+export class PageProvider {
+    current = 0;
+    start = 0;
+    end = 0;
+    step = 1;
+
+    constructor(start, end) {
+        this.start = start;
+        this.current = start;
+        this.end = end;
+    }
+
+    range () {
+        return this.end - this.start;
+    }
+    next () {
+        this.current += this.step;
+        return (this.end - this.current > 0) ? this.current : -1;
+    }
+    reset () {
+        this.current = this.start
+        return this.current;
+    }
+}
+
 export class BookletOptions {
     constructor() {
         this.text_read_direction = TextDirection.L2R;
         this.pages_per_page = 1;
         this.rotate_even_pages = false;
-        this.page_size = "A4"
+        this.page_size = "A4";
+        this.multiple_booklets = false;
+        this.booklet_size = 6;
     }
 
     /**
@@ -63,6 +92,39 @@ export class BookletOptions {
             ? pdf_orientation_opposite
             : pdf_orientation;
     }
+
+    getPageProviders(pdf_file) {
+        let page_providers = [];
+
+        let p = 0;
+        let p_step = calculatePdfPagesPerBookletPage(pdf_file, this) * this.booklet_size * 2;
+        let p_max = pdf_file.document.getPageCount();
+        while (p < p_max) {
+            const page_provider = new PageProvider();
+
+            page_provider.start = p;
+            p += p_step;
+            page_provider.end = Math.min(p, p_max);
+            page_providers.push(page_provider);
+        }
+
+        return page_providers;
+    }
+}
+
+/**
+ * @param {Uint8Array[]} files
+ * @returns {Promise<Uint8Array>}
+ */
+export async function createZip (files) {
+    let zip = new JSZip();
+
+    files.forEach((file, index) => {
+        const name = "booklet_" + (index+1) + ".pdf";
+        zip.file(name, file)
+    });
+
+    return zip.generateAsync({type:"uint8array"});
 }
 
 function detectPdfOrientation (pdf_document) {

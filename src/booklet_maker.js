@@ -1,5 +1,5 @@
 import {PageSizes, PDFDocument, degrees} from "pdf-lib";
-import {Orientation, TextDirection} from "@/printlet";
+import {Orientation, PageProvider, TextDirection} from "@/printlet";
 
 class Vec2D {
     constructor(x=0, y=0) {
@@ -13,13 +13,31 @@ class Vec2D {
 }
 
 /**
- * @param pdf_file
- * @param booklet_options
- * @returns {boolean}
+ * @param {PdfFile} pdf_file
+ * @param {BookletOptions} booklet_options
+ * @returns {Uint8Array[]}
  */
-export async function createBooklet(pdf_file, booklet_options) {
+export async function createBooklets(pdf_file, booklet_options) {
+    return booklet_options.getPageProviders(pdf_file).map(
+        (page_provider) => {
+            return createBooklet(pdf_file, booklet_options, page_provider);
+        }
+    )
+}
+
+/**
+ * @param {PdfFile} pdf_file
+ * @param {BookletOptions} booklet_options
+ * @param {PageProvider|null} page_provider
+ * @returns {Uint8Array}
+ */
+export async function createBooklet(pdf_file, booklet_options, page_provider=null) {
+    if (page_provider === null) {
+        page_provider = new PageProvider(0, pdf_file.document.getPageCount());
+    }
+
     const booklet_page_size = PageSizes[booklet_options.page_size];
-    const booklet_page_count = calculateBookletPageCount(pdf_file, booklet_options);
+    const booklet_page_count = calculateBookletPageCount(pdf_file, booklet_options, page_provider);
 
     const booklet_doc = await PDFDocument.create();
     for (let i=0; i<booklet_page_count; i++) {
@@ -40,8 +58,9 @@ export async function createBooklet(pdf_file, booklet_options) {
     const page_dimensions = new Vec2D(booklet_page_size[0] / page_grid.x, booklet_page_size[1] / page_grid.y)
 
     const pdf = await PDFDocument.load(await pdf_file.document.save());
-    for (let i=0; i<pdf.getPageCount(); i++) {
-        const booklet_page_index = calculateBookletPageForPdfPage(i, booklet_page_count, page_grid);
+    let i = page_provider.reset();
+    while (i >= 0) {
+        const booklet_page_index = calculateBookletPageForPdfPage(i - page_provider.start, booklet_page_count, page_grid);
         const booklet_page = booklet_doc.getPage(booklet_page_index);
 
         const page = pdf.getPages()[i];
@@ -63,6 +82,7 @@ export async function createBooklet(pdf_file, booklet_options) {
         });
 
         advanceGridPosition(grid_position, page_grid);
+        i = page_provider.next();
     }
 
     return await booklet_doc.save();
@@ -116,10 +136,11 @@ function isPageRotated(pdf_file, booklet_options) {
  *
  * @param {PdfFile} pdf_file
  * @param {BookletOptions} booklet_options
+ * @param {PageProvider} page_provider
  * @returns {number}
  */
-export function calculateBookletPageCount(pdf_file, booklet_options) {
-    const pdf_page_count = pdf_file.document.getPageCount();
+export function calculateBookletPageCount(pdf_file, booklet_options, page_provider) {
+    const pdf_page_count = page_provider.range();
     const pages_per_booklet_paper = calculatePdfPagesPerBookletPage(pdf_file, booklet_options) * 2;
 
     return Math.ceil(pdf_page_count / pages_per_booklet_paper) * 2

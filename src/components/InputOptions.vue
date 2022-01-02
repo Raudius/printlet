@@ -69,6 +69,31 @@
           class="demo-switch--custom"
       />
     </ui-form-field>
+
+    <ui-form-field>
+      <label>
+        Create multiple booklets:
+        <ui-icon
+            v-tooltip="'For large PDF files it is often easier to create multiple smaller booklets.'"
+            :size="18"
+            aria-describedby="tooltip_rotate_pages">info</ui-icon>
+
+      </label>
+      <ui-switch
+          v-model="options.multiple_booklets"
+          @change="updated"
+          input-id="input_booklet_size"
+          :true-value="4"
+          :false-value="0"
+      />
+    </ui-form-field>
+    <ui-form-field v-if="options.multiple_booklets">
+      <label>Sheets per booklet:</label>
+      <ui-textfield
+        input-type="number"
+        v-model="options.booklet_size"
+      ></ui-textfield>
+    </ui-form-field>
   </ui-form>
 </template>
 
@@ -86,7 +111,8 @@ export default {
   data() {
     return {
       PageSizeOptions,
-      options: new BookletOptions()
+      options: new BookletOptions(),
+      multiple_booklets: false
     }
   },
   emits: {
