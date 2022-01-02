@@ -14,6 +14,8 @@ export default {
 }
 </script>
 
+<style lang="scss">
+
 <style>
 body {
   background-color: #efefef;
@@ -43,4 +45,5 @@ label {
   animation-name: tooltip_background;
   animation-duration: 1s;
 }
+
 </style>
