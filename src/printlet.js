@@ -94,11 +94,12 @@ export class BookletOptions {
     }
 
     getPageProviders(pdf_file) {
-        let page_providers = [];
+        const page_providers = [];
+        const p_max = pdf_file.document.getPageCount();
+        const booklet_size = this.multiple_booklets ? this.booklet_size : p_max;
+        const p_step = calculatePdfPagesPerBookletPage(pdf_file, this) * booklet_size * 2;
 
         let p = 0;
-        let p_step = calculatePdfPagesPerBookletPage(pdf_file, this) * this.booklet_size * 2;
-        let p_max = pdf_file.document.getPageCount();
         while (p < p_max) {
             const page_provider = new PageProvider();
 

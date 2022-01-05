@@ -21,20 +21,16 @@
       </span>
     </ui-form-field>
 
-    <ui-form-field>
-      <label>Print page size:</label>
-      <span>
-        <ui-select
-            v-model="options.page_size"
-            :options="PageSizeOptions"
-            @change="updated"
-        ></ui-select>
-      </span>
-    </ui-form-field>
+  </ui-form>
 
-    <ui-form-field>
-      <label>Text read direction:</label>
-      <span>
+  <ui-collapse with-icon ripple>
+    <template #toggle>
+      <div>Advanced options</div>
+    </template>
+    <ui-form nowrap item-margin-bottom="16">
+      <ui-form-field>
+        <label>Text read direction:</label>
+        <span>
             <ui-segmented-buttons
                 v-model="options.text_read_direction"
                 @change="updated"
@@ -51,39 +47,26 @@
                 single-select
             />
           </span>
-    </ui-form-field>
+      </ui-form-field>
 
-    <ui-form-field>
-      <label>
-        Rotate alternate pages 180°:
-        <ui-icon
-            v-tooltip="'Some printers may flip the back of a double-sided print. You can correct this behaviour by ticking this option.'"
-            :size="18"
-            aria-describedby="tooltip_rotate_pages">info</ui-icon>
+      <ui-form-field>
+        <label>Print page size:</label>
+        <span>
+        <ui-select
+            v-model="options.page_size"
+            :options="PageSizeOptions"
+            @change="updated"
+        ></ui-select>
+      </span>
+      </ui-form-field>
 
-      </label>
-      <ui-switch
-          v-model="options.rotate_even_pages"
-          @change="updated"
-          input-id="basic-switch-custom"
-          class="demo-switch--custom"
-      />
-    </ui-form-field>
-  </ui-form>
-
-  <ui-collapse with-icon ripple>
-    <template #toggle>
-      <div>Advanced options</div>
-    </template>
-    <ui-form nowrap item-margin-bottom="16">
       <ui-form-field>
         <label>
           Create multiple booklets:
           <ui-icon
               v-tooltip="'For large PDF files it is often easier to create multiple smaller booklets.'"
               :size="18"
-              aria-describedby="tooltip_rotate_pages">info</ui-icon>
-
+              aria-describedby="tooltip_multiple_booklets">info</ui-icon>
         </label>
         <ui-switch
             v-model="options.multiple_booklets"
@@ -95,10 +78,17 @@
       </ui-form-field>
       <ui-form-field v-if="options.multiple_booklets">
         <label>Sheets per booklet:</label>
-        <ui-textfield
-            input-type="number"
-            v-model="options.booklet_size"
-        ></ui-textfield>
+        <ui-textfield input-type="number" v-model="options.booklet_size"></ui-textfield>
+      </ui-form-field>
+      <ui-form-field>
+        <label>
+          Rotate alternate pages 180°:
+          <ui-icon
+              v-tooltip="'Some printers may flip the back of a double-sided print. You can correct this behaviour by ticking this option.'"
+              :size="18"
+              aria-describedby="tooltip_rotate_pages">info</ui-icon>
+        </label>
+        <ui-switch v-model="options.rotate_even_pages" @change="updated" />
       </ui-form-field>
     </ui-form>
   </ui-collapse>
