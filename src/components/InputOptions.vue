@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import {BookletOptions} from "@/printlet";
+import {loadBookletOptions} from "@/printlet";
 import {PageSizes} from "pdf-lib";
 import {vTooltip} from "balm-ui";
 
@@ -108,7 +108,7 @@ export default {
   data() {
     return {
       PageSizeOptions,
-      options: new BookletOptions(),
+      options: loadBookletOptions(),
       multiple_booklets: false
     }
   },

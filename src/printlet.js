@@ -1,6 +1,7 @@
 import {PDFDocument} from "pdf-lib";
 import {calculatePdfPagesPerBookletPage} from "@/booklet_maker";
 import * as JSZip from 'jszip';
+import Cookies from 'js-cookie'
 
 export const Orientation = {
     UNKNOWN: -1,
@@ -70,6 +71,21 @@ export class PageProvider {
     }
 }
 
+export function loadBookletOptions() {
+    const booklet_options = new BookletOptions();
+
+    for (const key in booklet_options) {
+        const type = booklet_options[key]?.constructor;
+        const value = Cookies.get(key);
+        const casted_value = type ? (type) (value) : null;
+        if (value && casted_value) {
+            booklet_options[key] = casted_value;
+        }
+    }
+
+    return booklet_options;
+}
+
 export class BookletOptions {
     constructor() {
         this.text_read_direction = TextDirection.L2R;
@@ -78,6 +94,12 @@ export class BookletOptions {
         this.page_size = "A4";
         this.multiple_booklets = false;
         this.booklet_size = 6;
+    }
+
+    save () {
+        for (const key in this) {
+            Cookies.set(key, this[key], { sameSite: 'strict' });
+        }
     }
 
     /**
