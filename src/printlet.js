@@ -1,6 +1,4 @@
-import {PDFDocument} from "pdf-lib";
-import {calculatePdfPagesPerBookletPage, createBooklets, createBookletsSinglePdf} from "@/booklet_maker";
-import * as JSZip from 'jszip';
+import {calculatePdfPagesPerBookletPage} from "@/booklet_maker";
 import Cookies from 'js-cookie'
 
 export const Orientation = {
@@ -22,18 +20,9 @@ export const TextDirection = {
 }
 
 /**
- * @param {File} file
- * @returns {Promise<PdfFile>}
+ * Represents an uploaded PdfFile.
  */
-export async function loadPdfFile(file)
-{
-    return await fileToBase64(file).then(async pdf_content => {
-        const document = await PDFDocument.load(pdf_content);
-        return new PdfFile(file.name, document);
-    });
-}
-
-class PdfFile {
+export class PdfFile {
     orientation_manual = Orientation.UNKNOWN;
 
     /**
@@ -55,31 +44,10 @@ class PdfFile {
     }
 }
 
-export class PageProvider {
-    current = 0;
-    start = 0;
-    end = 0;
-    step = 1;
-
-    constructor(start, end) {
-        this.start = start;
-        this.current = start;
-        this.end = end;
-    }
-
-    range () {
-        return this.end - this.start;
-    }
-    next () {
-        this.current += this.step;
-        return (this.end - this.current > 0) ? this.current : -1;
-    }
-    reset () {
-        this.current = this.start
-        return this.current;
-    }
-}
-
+/**
+ * Loads the booklet options from the cookie store.
+ * @returns {BookletOptions}
+ */
 export function loadBookletOptions() {
     const booklet_options = new BookletOptions();
 
@@ -87,14 +55,18 @@ export function loadBookletOptions() {
         const type = booklet_options[key]?.constructor;
         const value = Cookies.get(key);
         const casted_value = type ? (type) (value) : null;
-        if (value && casted_value) {
+        if (value && casted_value !== null) {
             booklet_options[key] = casted_value;
+            console.log(key + " -> " + casted_value)
         }
     }
 
     return booklet_options;
 }
 
+/**
+ * Collects all the options that define how the booklet should be created.
+ */
 export class BookletOptions {
     constructor() {
         this.text_read_direction = TextDirection.L2R;
@@ -106,9 +78,13 @@ export class BookletOptions {
         this.output_format = OutputFormats.ZIP;
     }
 
+    /**
+     * Saves the booklet options to the cookie store.
+     */
     save () {
         for (const key in this) {
             Cookies.set(key, this[key], { sameSite: 'strict' });
+            console.log(key + " -> " +  this[key])
         }
     }
 
@@ -150,21 +126,38 @@ export class BookletOptions {
 }
 
 /**
- * @param {String} base_name
- * @param {Uint8Array[]} files
- * @returns {Promise<Uint8Array>}
+ * Utility class which provides a convinient way to iterate through subsets of input PDF pages.
  */
-export async function createZip (base_name, files) {
-    let zip = new JSZip();
+class PageProvider {
+    current = 0;
+    start = 0;
+    end = 0;
+    step = 1;
 
-    files.forEach((file, index) => {
-        const name = base_name + "_" + (index+1) + ".pdf";
-        zip.file(name, file)
-    });
+    constructor(start, end) {
+        this.start = start;
+        this.current = start;
+        this.end = end;
+    }
 
-    return zip.generateAsync({type:"uint8array"});
+    range () {
+        return this.end - this.start;
+    }
+    next () {
+        this.current += this.step;
+        return (this.end - this.current > 0) ? this.current : -1;
+    }
+    reset () {
+        this.current = this.start
+        return this.current;
+    }
 }
 
+/**
+ * Detects the orientation of a PDF document.
+ * @param {PDFDocument} pdf_document
+ * @returns {number}
+ */
 function detectPdfOrientation (pdf_document) {
     const pages = pdf_document.getPages();
 
@@ -180,6 +173,11 @@ function detectPdfOrientation (pdf_document) {
     return orientation;
 }
 
+/**
+ * Detects the Orientation of a single page.
+ * @param {PDFPage} page
+ * @returns {number}
+ */
 function detectPageOrientation (page) {
     const {width, height} = page.getSize()
     const rotated = (page.getRotation().angle / 90) % 2 !== 0;
@@ -188,30 +186,4 @@ function detectPageOrientation (page) {
     return (landscape && !rotated) || (!landscape && rotated)
         ? Orientation.LANDSCAPE
         : Orientation.PORTRAIT;
-}
-
-/**
- * @param {File} file
- * @returns {Promise<String>}
- */
-const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-});
-
-
-/**
- * @param {PdfFile} pdf_file
- * @param {BookletOptions} booklet_options
- * @returns {Promise<Uint8Array>}
- */
-export async function createPrintlet(pdf_file, booklet_options) {
-    if (booklet_options.output_format === OutputFormats.ZIP) {
-        const booklet_pdfs = await createBooklets(pdf_file, booklet_options);
-        return await createZip(pdf_file.getBaseName(), booklet_pdfs);
-    } else {
-        return await createBookletsSinglePdf(pdf_file, booklet_options);
-    }
 }

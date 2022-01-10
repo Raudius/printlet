@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import {loadPdfFile} from "@/printlet";
+import {loadPdfFile} from "@/file_utils";
 
 export default {
   name: "InputPdf",
