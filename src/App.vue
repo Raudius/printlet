@@ -29,7 +29,6 @@ body {
   color: #2c3e50;
 }
 
-
 label {
   width: 240px !important;
   padding: 0 !important;

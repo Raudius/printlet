@@ -1,7 +1,7 @@
 <template>
   <div class="upload_container">
     <div>
-      <ui-file accept="application/pdf" @change="loadFile"></ui-file>
+      <ui-file accept="application/pdf" @change="loadFile" text="Select file..."></ui-file>
       <div v-if="fileName" class="upload_container_file_name">
         {{fileName}}
       </div>
@@ -39,6 +39,7 @@
 
 <script>
 import {loadPdfFile} from "@/file_utils";
+import {Orientation} from "@/printlet";
 
 export default {
   name: "InputPdf",
@@ -66,7 +67,7 @@ export default {
       return this.pdf_file?.file_name;
     },
     isPdfOrientationAmbiguous() {
-      return this.pdf_file?.document !== null && this.pdf_file?.orientation < 0;
+      return this.pdf_file?.document !== null && this.pdf_file?.orientation === Orientation.UNKNOWN;
     }
   }
 }

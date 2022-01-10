@@ -1,5 +1,8 @@
 <template>
   <div class="form">
+    <h1>Printlet</h1>
+    <p>Create printable booklets from your browser!</p>
+    <p>For questions and feature requests open an issue on <a href="http://github.com/Raudius/printlet/issues">Github</a></p>
     <h2>
       1. Load PDF
       <ui-icon
@@ -53,8 +56,8 @@ export default {
       this.pdf_file = pdf_data;
     },
     async submitForm () {
-      if (!this.pdf_file || !this.booklet_options) {
-        alert('Missing pdf or booklet options.');
+      if (!this.pdf_file || this.pdf_file.orientation === Orientation.UNKNOWN) {
+        alert('PDF file is missing!');
         return;
       }
 
@@ -100,6 +103,10 @@ export default {
   }
 }
 .form {
+  text-align: left;
+}
+
+h1 {
   text-align: left;
 }
 </style>
