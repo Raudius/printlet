@@ -1,5 +1,5 @@
 import {PageSizes, PDFDocument, degrees} from "pdf-lib";
-import {Orientation, PageProvider, TextDirection} from "@/printlet";
+import {Orientation, TextDirection} from "@/printlet";
 
 class Vec2D {
     constructor(x=0, y=0) {
@@ -20,7 +20,8 @@ class Vec2D {
 export function createBooklets(pdf_file, booklet_options) {
     return Promise.all(booklet_options.getPageProviders(pdf_file).map(
         async (page_provider) => {
-            return await createBooklet(pdf_file, booklet_options, page_provider);
+            const booklet_pdf = await createBooklet(pdf_file, booklet_options, page_provider);
+            return await (booklet_pdf).save();
         }
     ));
 }
@@ -28,18 +29,40 @@ export function createBooklets(pdf_file, booklet_options) {
 /**
  * @param {PdfFile} pdf_file
  * @param {BookletOptions} booklet_options
- * @param {PageProvider|null} page_provider
  * @returns {Promise<Uint8Array>}
  */
-async function createBooklet(pdf_file, booklet_options, page_provider=null) {
-    if (page_provider === null) {
-        page_provider = new PageProvider(0, pdf_file.document.getPageCount());
+export async function createBookletsSinglePdf(pdf_file, booklet_options) {
+    let single_pdf = await PDFDocument.create();
+
+    const page_providers = booklet_options.getPageProviders(pdf_file);
+    for (const idx in page_providers) {
+        const page_provider = page_providers[idx];
+        const filler_pages = single_pdf.getPageCount() % 2;
+        for (let i=0; i<filler_pages; i++) {
+            single_pdf.addPage()
+        }
+
+        await createBooklet(pdf_file, booklet_options, page_provider, single_pdf)
     }
 
+    return single_pdf.save();
+}
+
+/**
+ * @param {PdfFile} pdf_file
+ * @param {BookletOptions} booklet_options
+ * @param {PageProvider} page_provider
+ * @param {PDFDocument} booklet_doc
+ * @returns {Promise<PDFDocument>}
+ */
+async function createBooklet(pdf_file, booklet_options, page_provider, booklet_doc = null) {
     const booklet_page_size = PageSizes[booklet_options.page_size];
     const booklet_page_count = calculateBookletPageCount(pdf_file, booklet_options, page_provider);
 
-    const booklet_doc = await PDFDocument.create();
+    if (booklet_doc === null) {
+        booklet_doc = await PDFDocument.create();
+    }
+    const start_booklet_doc_page = booklet_doc.getPageCount();
     for (let i=0; i<booklet_page_count; i++) {
         const page = booklet_doc.addPage(booklet_page_size);
         if (booklet_options.rotate_even_pages && i % 2 === 1) {
@@ -60,7 +83,7 @@ async function createBooklet(pdf_file, booklet_options, page_provider=null) {
     const pdf = await PDFDocument.load(await pdf_file.document.save());
     let i = page_provider.reset();
     while (i >= 0) {
-        const booklet_page_index = calculateBookletPageForPdfPage(i - page_provider.start, booklet_page_count, page_grid);
+        const booklet_page_index = start_booklet_doc_page + calculateBookletPageForPdfPage(i - page_provider.start, booklet_page_count, page_grid);
         const booklet_page = booklet_doc.getPage(booklet_page_index);
 
         const page = pdf.getPages()[i];
@@ -85,7 +108,7 @@ async function createBooklet(pdf_file, booklet_options, page_provider=null) {
         i = page_provider.next();
     }
 
-    return booklet_doc.save();
+    return booklet_doc;
 }
 
 /**

@@ -18,6 +18,7 @@ export default {
 <style>
 body {
   background-color: #efefef;
+  min-width: 600px;
 }
 
 #app {

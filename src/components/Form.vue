@@ -32,8 +32,7 @@ import InputPdf from "@/components/InputPdf";
 import InputOptions from "@/components/InputOptions";
 import {vTooltip} from "balm-ui";
 import download from "downloadjs";
-import {createZip, Orientation} from "@/printlet";
-import {createBooklets} from "@/booklet_maker";
+import {createPrintlet, Orientation, OutputFormats} from "@/printlet";
 
 export default {
   name: 'Form',
@@ -57,14 +56,13 @@ export default {
         return;
       }
 
-      const base_name = this.pdf_file.file_name.replaceAll('.pdf', '') + '_booklet';
-      const pdfs = await createBooklets(this.pdf_file, this.booklet_options);
+      const output_name = this.pdf_file.getBaseName() + '_booklet';
+      const output_file = await createPrintlet(this.pdf_file, this.booklet_options);
 
-      if (pdfs.length === 1) {
-        download(pdfs[0], base_name + '.pdf', 'application/pdf');
+      if (this.booklet_options.output_format === OutputFormats.ZIP) {
+        download(output_file, output_name + '.zip', 'application/zip');
       } else {
-        const zip = await createZip(base_name, pdfs);
-        download(zip, base_name + '.zip', 'application/zip');
+        download(output_file, output_name + '.pdf', 'application/pdf');
       }
       this.booklet_options.save();
     }

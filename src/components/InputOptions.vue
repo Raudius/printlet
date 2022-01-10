@@ -76,10 +76,12 @@
             :false-value="0"
         />
       </ui-form-field>
+
       <ui-form-field v-if="options.multiple_booklets">
         <label>Sheets per booklet:</label>
         <ui-textfield input-type="number" v-model="options.booklet_size"></ui-textfield>
       </ui-form-field>
+
       <ui-form-field>
         <label>
           Rotate alternate pages 180°:
@@ -90,12 +92,21 @@
         </label>
         <ui-switch v-model="options.rotate_even_pages" @change="updated" />
       </ui-form-field>
+
+      <ui-form-field>
+        <label>Output format:</label>
+        <ui-select
+            v-model="this.options.output_format"
+            @change="updated"
+            :options="OutputFormatOptions"
+        />
+      </ui-form-field>
     </ui-form>
   </ui-collapse>
 </template>
 
 <script>
-import {loadBookletOptions} from "@/printlet";
+import {loadBookletOptions, OutputFormats} from "@/printlet";
 import {PageSizes} from "pdf-lib";
 import {vTooltip} from "balm-ui";
 
@@ -103,11 +114,17 @@ const PageSizeOptions = Object.keys(PageSizes).map((key) => {
   return { label: key, value: key }
 });
 
+const OutputFormatOptions = [
+  { label: "Single PDF file", value: OutputFormats.PDF },
+  { label: "Zipped PDF files", value: OutputFormats.ZIP }
+]
+
 export default {
   name: "InputOptions",
   data() {
     return {
       PageSizeOptions,
+      OutputFormatOptions,
       options: loadBookletOptions(),
       multiple_booklets: false
     }

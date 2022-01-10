@@ -1,5 +1,5 @@
 import {PDFDocument} from "pdf-lib";
-import {calculatePdfPagesPerBookletPage} from "@/booklet_maker";
+import {calculatePdfPagesPerBookletPage, createBooklets, createBookletsSinglePdf} from "@/booklet_maker";
 import * as JSZip from 'jszip';
 import Cookies from 'js-cookie'
 
@@ -10,6 +10,11 @@ export const Orientation = {
     VERTICAL: 0,
     HORIZONTAL: 1
 };
+
+export const OutputFormats = {
+    PDF: 0,
+    ZIP: 1
+}
 
 export const TextDirection = {
     L2R: 0,
@@ -43,6 +48,10 @@ class PdfFile {
 
     getOrientation () {
         return (this.orientation !== Orientation.UNKNOWN) ? this.orientation : this.orientation_manual;
+    }
+
+    getBaseName() {
+        return this.file_name.replaceAll('.pdf', '');
     }
 }
 
@@ -94,6 +103,7 @@ export class BookletOptions {
         this.page_size = "A4";
         this.multiple_booklets = false;
         this.booklet_size = 6;
+        this.output_format = OutputFormats.ZIP;
     }
 
     save () {
@@ -115,6 +125,10 @@ export class BookletOptions {
             : pdf_orientation;
     }
 
+    /**
+     * @param {PdfFile} pdf_file
+     * @returns {PageProvider[]}
+     */
     getPageProviders(pdf_file) {
         const page_providers = [];
         const p_max = pdf_file.document.getPageCount();
@@ -188,3 +202,16 @@ const fileToBase64 = (file) => new Promise((resolve, reject) => {
 });
 
 
+/**
+ * @param {PdfFile} pdf_file
+ * @param {BookletOptions} booklet_options
+ * @returns {Promise<Uint8Array>}
+ */
+export async function createPrintlet(pdf_file, booklet_options) {
+    if (booklet_options.output_format === OutputFormats.ZIP) {
+        const booklet_pdfs = await createBooklets(pdf_file, booklet_options);
+        return await createZip(pdf_file.getBaseName(), booklet_pdfs);
+    } else {
+        return await createBookletsSinglePdf(pdf_file, booklet_options);
+    }
+}
