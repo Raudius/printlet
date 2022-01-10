@@ -1,4 +1,8 @@
-# printlet
+# Printlet
+
+Create printable booklets from your browser!
+
+https://raudius.github.io/printlet/
 
 ## Project setup
 ```

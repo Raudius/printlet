@@ -19,11 +19,6 @@
     <InputOptions @updated="setBookletOptions" />
 
     <h2>3. Download booklet</h2>
-
-    <ui-alert v-if="bookletTypeTip" class="no_top_margin" state="info">
-      {{ bookletTypeTip }}
-    </ui-alert>
-    <br/>
     <ui-button raised icon="download_for_offline" @click="submitForm">
       Download
     </ui-button>
@@ -74,18 +69,6 @@ export default {
         download(file, output_name + '.pdf', 'application/pdf');
       }
       this.booklet_options.save();
-    }
-  },
-  computed: {
-    bookletTypeTip() {
-      const pdf_orientation = this.pdf_file?.getOrientation() ?? Orientation.UNKNOWN;
-      const booklet_orientation = this.booklet_options?.orientation ?? Orientation.UNKNOWN;
-      if (pdf_orientation < 0 || booklet_orientation < 0) {
-        return null;
-      }
-
-      const pages = booklet_orientation === pdf_orientation ? 2 : 4;
-      return "Each booklet page will contain " + pages + " PDF pages.";
     }
   },
   directives: {
