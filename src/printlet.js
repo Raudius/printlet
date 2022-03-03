@@ -1,6 +1,11 @@
 import {calculatePdfPagesPerBookletPage} from "@/booklet_maker";
 import Cookies from 'js-cookie'
 
+const DefaultCookieOptions = {
+    expires: 5000,
+    sameSite: 'strict'
+}
+
 export const Orientation = {
     UNKNOWN: -1,
     PORTRAIT: 0,
@@ -83,9 +88,17 @@ export class BookletOptions {
      */
     save () {
         for (const key in this) {
-            Cookies.set(key, this[key], { sameSite: 'strict' });
-            console.log(key + " -> " +  this[key])
+            Cookies.set(key, this[key], DefaultCookieOptions);
         }
+    }
+
+    /**
+     * Returns the output format. If multiple-booklets is disabled we default to PDF output.
+     *
+     * @returns {number}
+     */
+    getOutputFormat () {
+        return this.multiple_booklets ? this.output_format : OutputFormats.PDF;
     }
 
     /**
