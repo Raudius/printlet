@@ -82,6 +82,15 @@
         <ui-textfield input-type="number" v-model="options.booklet_size"></ui-textfield>
       </ui-form-field>
 
+      <ui-form-field v-if="options.multiple_booklets">
+        <label>Output format:</label>
+        <ui-select
+            v-model="this.options.output_format"
+            @change="updated"
+            :options="OutputFormatOptions"
+        />
+      </ui-form-field>
+
       <ui-form-field>
         <label>
           Rotate alternate pages 180°:
@@ -91,15 +100,6 @@
               aria-describedby="tooltip_rotate_pages">info</ui-icon>
         </label>
         <ui-switch v-model="options.rotate_even_pages" @change="updated" />
-      </ui-form-field>
-
-      <ui-form-field>
-        <label>Output format:</label>
-        <ui-select
-            v-model="this.options.output_format"
-            @change="updated"
-            :options="OutputFormatOptions"
-        />
       </ui-form-field>
     </ui-form>
   </ui-collapse>

@@ -35,7 +35,7 @@ import {createBooklets, createBookletsSinglePdf} from "@/booklet_maker";
 import {createZip} from "@/file_utils";
 
 export default {
-  name: 'Form',
+  name: 'PrintletForm',
   components: {InputOptions, InputPdf},
   data() {
     return {
@@ -58,7 +58,7 @@ export default {
 
       const output_name = this.pdf_file.getBaseName() + '_booklet';
 
-      if (this.booklet_options.output_format === OutputFormats.ZIP) {
+      if (this.booklet_options.getOutputFormat() === OutputFormats.ZIP) {
         const booklet_pdfs = await createBooklets(this.pdf_file, this.booklet_options);
         const file = await createZip(this.pdf_file.getBaseName(), booklet_pdfs);
 

@@ -1,15 +1,15 @@
 <template id="app">
-  <Form></Form>
+  <PrintletForm></PrintletForm>
 </template>
 
 <script>
 
-import Form from "@/components/Form";
+import PrintletForm from "@/components/PrintletForm";
 
 export default {
   name: 'App',
   components: {
-    Form
+    PrintletForm
   }
 }
 </script>
